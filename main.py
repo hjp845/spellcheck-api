@@ -1,13 +1,13 @@
-# Welcome to Cloud Functions for Firebase for Python!
-# To get started, simply uncomment the below code or create your own.
-# Deploy with `firebase deploy`
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+from hanspell import spell_checker
 
-from firebase_functions import https_fn
-from firebase_admin import initialize_app
+app = Flask(__name__)
+CORS(app)  # CORS 허용 설정
 
-# initialize_app()
-#
-#
-# @https_fn.on_request()
-# def on_request_example(req: https_fn.Request) -> https_fn.Response:
-#     return https_fn.Response("Hello world!")
+@app.route('/check', methods=['POST'])
+def check():
+    data = request.json
+    text = data.get("text", "")
+    res = spell_checker.check(text)
+    return jsonify({"result": res.checked})
