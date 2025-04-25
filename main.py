@@ -14,12 +14,24 @@ def check():
         response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
         return response
 
-    data = request.get_json()
-    text = data.get("text", "")
-    res = spell_checker.check(text)
-    response = jsonify({"result": res.checked})
-    response.headers['Access-Control-Allow-Origin'] = '*'
-    return response
+    try:
+        data = request.get_json(force=True)
+        text = data.get("text", "")
+        if not text:
+            return jsonify({"error": "No text provided"}), 400
+
+        res = spell_checker.check(text)
+
+        if not hasattr(res, "checked"):
+            return jsonify({"error": "Spellcheck failed. Please try again later."}), 500
+
+        response = jsonify({"result": res.checked})
+        response.headers['Access-Control-Allow-Origin'] = '*'
+        return response
+
+    except Exception as e:
+        print(f"서버 에러: {e}")
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
