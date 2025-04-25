@@ -1,19 +1,23 @@
 from flask import Flask, request, jsonify
-from flask_cors import CORS, cross_origin
+from flask_cors import CORS
 from hanspell import spell_checker
 
 app = Flask(__name__)
 
-# 💡 모든 경로에 대해 모든 Origin 허용
-CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
+# ✅ 모든 라우트에 대해 모든 Origin 허용 + Preflight 지원
+CORS(app, resources={r"/check": {"origins": "*"}}, supports_credentials=True)
 
 @app.route('/check', methods=['POST', 'OPTIONS'])
-@cross_origin(origin='*')  # 💥 명시적으로 CORS 허용 (Flask-CORS용 데코레이터)
 def check():
     if request.method == 'OPTIONS':
-        return '', 200  # Preflight 요청에 200 응답
+        # ✅ Preflight 요청에 대한 CORS 응답 강제 추가
+        response = app.make_response('', 200)
+        response.headers['Access-Control-Allow-Origin'] = '*'
+        response.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+        return response
 
-    data = request.json
+    data = request.get_json()
     text = data.get("text", "")
     res = spell_checker.check(text)
     return jsonify({"result": res.checked})
