@@ -3,7 +3,7 @@ from flask_cors import CORS
 from hanspell import spell_checker
 
 app = Flask(__name__)
-CORS(app)  # CORS 허용 설정
+CORS(app, resources={r"/*": {"origins": "*"}})  # ✅ 확실하게 origin 헤더 추가
 
 @app.route('/check', methods=['POST'])
 def check():
